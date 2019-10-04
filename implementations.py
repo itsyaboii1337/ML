@@ -1,5 +1,6 @@
 import numpy as np
 from proj1_helpers import *
+import matplotlib.pyplot as plt
 ### Preprocessing functions
 
 def split_data(x, y, ratio, seed=1):
@@ -19,6 +20,11 @@ def split_data(x, y, ratio, seed=1):
     
     return x[train_ids],y[train_ids],x[test_ids],y[test_ids]
 
+def normalize_data(tx):
+    norm = np.linalg.norm(tx)
+    if norm == 0:
+        return tx
+    return tx/norm
 
 ### Loss functions
 def compute_loss(y, tx, w):
@@ -31,6 +37,16 @@ def compute_loss(y, tx, w):
 def compute_rmse(y, tx, w):
     return np.sqrt(2*compute_loss(y, tx, w))
 
+def cost_log_regression(tx, y, w):
+    N = y.shape[0]
+    sigmoid_prediction = sigmoid_activation(np.dot(tx,w))
+    #Using cross entropy loss : https://en.wikipedia.org/wiki/Cross_entropy
+    loss = -np.mean(y*np.log(sigmoid_prediction)+(1-y)*np.log(1-sigmoid_prediction))
+    return loss
+
+### Gradient functions
+
+
 def compute_gradient(y, tx, w):
     
     N = y.size
@@ -40,6 +56,11 @@ def compute_gradient(y, tx, w):
 def compute_st_gradient(y_n, tx_n, w):
     """ We don't use batches here! """
     return -np.dot(tx_n.transpose(), y_n - np.matmul(tx_n, w))
+
+def compute_log_gradient(tx, y, ws, lr):
+    N = y.shape[0]
+    sigmoid_prediction = sigmoid_activation(np.dot(tx,ws))
+    return -np.dot(tx.transpose(), y-sigmoid_prediction)/N*lr
 
 ### Regression functions
 def least_squares_GD(y, tx, initial_w, max_iters, gamma):
@@ -93,7 +114,7 @@ def ridge_regression(y, tx, lambda_):
     """implement ridge regression."""
     Gram = np.dot(np.transpose(tx), tx)
     reg_matrix = lambda_/(2*Gram.shape[0])*np.identity(Gram.shape[0])
-    ws = np.dot(np.linalg.inv(Gram+reg_matrix, np.dot(np.transpose(tx), y)))
+    ws = np.dot(np.linalg.inv(Gram+reg_matrix), np.dot(np.transpose(tx), y))
     loss = compute_rmse(y, tx, ws)    
     return loss, ws
 
@@ -106,7 +127,7 @@ def build_poly(x, degree):
     return np.array(phi)
 
 
-def polynomial_regression(y,x,degrees):
+def polynomial_regression(y, x, degrees):
     """Constructing the polynomial basis function expansion of the data,
        and then running least squares regression."""
     # define parameters
@@ -116,12 +137,28 @@ def polynomial_regression(y,x,degrees):
         phi_x = build_poly(x,degree)
         loss, ws = least_squares_rmse(y,phi_x)
     return loss, ws
-                
+
+
+def sigmoid_activation(x):
+    return 1/(1+np.exp(-x))
+
+def logistic_regression(tx, y, ws, lr, num_iterations):
+    for iteration in range(num_iterations):
+        ws = ws - compute_log_gradient(tx, y, ws, lr)
+        if (iteration%10==0):
+            loss = cost_log_regression(tx, y, ws)
+            acc, f1 = metrics(ws, y, tx, predict_labels_log_reg)
+            print("Step: ",iteration, " loss: ", loss," accuracy: ",acc," f1_score: ",f1)    
+    return loss, ws
+
+
+
+
 ### Metrics : accuracy, f1_score
 #https://en.wikipedia.org/wiki/Precision_and_recall
-def metrics(weights, y_test, x_test):
+def metrics(weights, y_test, x_test, predict=predict_labels):
     tp, fp, tn, fn = 0,0,0,0
-    y_pred = predict_labels(weights, x_test)
+    y_pred = predict(weights, x_test)
     for i in range(len(y_pred)):
         if (y_pred[i] == 1):
             if (y_test[i] == 1):
@@ -139,3 +176,27 @@ def metrics(weights, y_test, x_test):
     f1_score = 2*tp/(2*tp+tn+fp+fn)
     
     return accuracy, f1_score
+
+
+
+
+
+
+### PostProcessing functions
+def plot_acc_f1(cat_acc, f1_score, lambdas):
+    """
+    train_errors, test_errors and lambas should be list (of the same size) the respective train error and test error for a given lambda,
+    * lambda[0] = 1
+    * train_errors[0] = RMSE of a ridge regression on the train set
+    * test_errors[0] = RMSE of the parameter found by ridge regression applied on the test set
+    
+    degree is just used for the title of the plot.
+    """
+    plt.semilogx(lambdas, cat_acc, color='b', marker='*', label="Categorical accuracy")
+    plt.semilogx(lambdas, f1_score, color='r', marker='*', label="f1 score")
+    plt.xlabel("lambda")
+    plt.ylabel("Value")
+    plt.title("Ridge regression")
+    leg = plt.legend(loc=1, shadow=True)
+    leg.draw_frame(False)
+    plt.savefig("ridge_regression")
