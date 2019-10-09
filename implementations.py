@@ -103,11 +103,6 @@ def compute_gradient(y, tx, w):
     return - np.matmul(np.transpose(tx), y-np.matmul(tx, w))/N
 
 
-def compute_st_gradient(y_n, tx_n, w):
-    """ We don't use batches here! """
-    return -np.dot(tx_n.transpose(), y_n - np.matmul(tx_n, w))
-
-
 def compute_log_gradient(tx, y, ws, lr):
     N = y.shape[0]
     sigmoid_prediction = sigmoid_activation(np.dot(tx, ws))
@@ -137,7 +132,7 @@ def least_squares_SGD(y, tx, initial_w, max_iters, gamma):
 
     for i in range(max_iters):
         for n in range(N):
-            grad = compute_st_gradient(y[n], tx[n], ws)
+            grad = compute_gradient(y[n], tx[n], ws)
             ws = ws - gamma*grad
 
     loss = compute_loss(y, tx, ws)

@@ -2,7 +2,7 @@
 """some helper functions for project 1."""
 import csv
 import numpy as np
-from implementations import sigmoid_activation
+from implementations import *
 
 def load_csv_data(data_path, sub_sample=False):
     """Loads data and returns y (class labels), tX (features) and ids (event ids)"""
