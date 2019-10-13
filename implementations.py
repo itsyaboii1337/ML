@@ -69,6 +69,12 @@ def normalize_dataset(tx, minmax):
         for i in range(len(row)):
             if((minmax[i][1] - minmax[i][0])!=0):
                 row[i] = (row[i] - minmax[i][0]) / (minmax[i][1] - minmax[i][0])
+                          
+    
+    
+    
+    
+
 
 # Loss functions
 
@@ -84,6 +90,8 @@ def compute_loss(y, tx, w):
 def compute_rmse(y, tx, w):
     return np.sqrt(2*compute_loss(y, tx, w))
 
+def sigmoid_activation(x):
+    return 1.0/(1+np.exp(-x))
 
 def cost_log_regression(tx, y, w):
     N = y.shape[0]
@@ -99,14 +107,15 @@ def cost_log_regression(tx, y, w):
 def compute_gradient(y, tx, w):
 
     N = y.size
+    return -np.dot(np.transpose(tx), y-np.dot(tx, w))/N
 
-    return - np.matmul(np.transpose(tx), y-np.matmul(tx, w))/N
 
-
-def compute_log_gradient(tx, y, ws, lr):
-    N = y.shape[0]
+def compute_log_gradient(tx, y, ws):
     sigmoid_prediction = sigmoid_activation(np.dot(tx, ws))
-    return -np.dot(tx.transpose(), y-sigmoid_prediction)/N*lr
+    return np.dot(tx.T, sigmoid_prediction - y)
+
+def compute_reg_log_gradient(tx, y, ws, lambda_):
+    return compute_log_gradient(tx, y, ws) + 2*lambda_*ws
 
 # Regression functions
 
@@ -192,21 +201,45 @@ def polynomial_regression(y, x, degrees):
     return loss, ws
 
 
-def sigmoid_activation(x):
-    return 1/(1+np.exp(-x))
 
 
-def logistic_regression(tx, y, tx_test, y_test, ws, lr, num_iterations):
+
+def logistic_regression(y, tx,  ws, num_iterations, lr): #y_test, tx_test,
     for iteration in range(num_iterations):
-        ws = ws - compute_log_gradient(tx, y, ws, lr)
+        ws = ws - lr * compute_log_gradient(tx, y, ws)
         if (iteration % 10000 == 0):
             loss = cost_log_regression(tx, y, ws)
             acc, f1 = metrics(ws, y, tx, predict_labels_log_reg)
-            acc_test, f1_test = metrics(ws, y_test, tx_test, predict_labels_log_reg)
+            #acc_test, f1_test = metrics(ws, y_test, tx_test, predict_labels_log_reg)
             print("Step: ", iteration, " loss: ", loss,
-                  " accuracy_train: ", acc, " f1_score_train: ", f1 ,
-                  " accuracy_test: ", acc_test, " f1_score_test: ", f1_test)
+                  " accuracy_train: ", acc, " f1_score_train: ", f1)# ,
+                  #" accuracy_test: ", acc_test, " f1_score_test: ", f1_test)
+    loss = cost_log_regression(tx, y, ws)
+    acc, f1 = metrics(ws, y, tx, predict_labels_log_reg)
+    #acc_test, f1_test = metrics(ws, y_test, tx_test, predict_labels_log_reg)
+    print("Step: ", iteration, " loss: ", loss,
+          " accuracy_train: ", acc, " f1_score_train: ", f1)# ,
+          #" accuracy_test: ", acc_test, " f1_score_test: ", f1_test)
     return loss, ws
+
+def reg_logistic_regression(y, tx,  ws, num_iterations, lr, lambda_): #y_test, tx_test,
+    for iteration in range(num_iterations):
+        ws = ws - lr * compute_reg_log_gradient(tx, y, ws, lambda_)
+        if (iteration % 10000 == 0):
+            loss = cost_log_regression(tx, y, ws)
+            acc, f1 = metrics(ws, y, tx, predict_labels_log_reg)
+            #acc_test, f1_test = metrics(ws, y_test, tx_test, predict_labels_log_reg)
+            print("Step: ", iteration, " loss: ", loss,
+                  " accuracy_train: ", acc, " f1_score_train: ", f1)# ,
+                  #" accuracy_test: ", acc_test, " f1_score_test: ", f1_test)
+    loss = cost_log_regression(tx, y, ws)
+    acc, f1 = metrics(ws, y, tx, predict_labels_log_reg)
+    #acc_test, f1_test = metrics(ws, y_test, tx_test, predict_labels_log_reg)
+    print("Step: ", iteration, " loss: ", loss,
+          " accuracy_train: ", acc, " f1_score_train: ", f1)# ,
+          #" accuracy_test: ", acc_test, " f1_score_test: ", f1_test)
+    return loss, ws
+
 
 
 # Metrics : accuracy, f1_score
