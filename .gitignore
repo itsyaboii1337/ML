@@ -1,10 +1,2 @@
-
-sample-submission.csv
-submission11.csv
-submission_3-11-23-51.csv
 *.csv
 *.pyc
-.ipynb_checkpoints/Categorical_Splitting-checkpoint.ipynb
-.ipynb_checkpoints/Categorical_Splitting-checkpoint.ipynb
-__pycache__/implementations.cpython-37.pyc
-__pycache__/proj1_helpers.cpython-37.pyc

@@ -71,7 +71,56 @@ def normalize_dataset(tx, minmax):
                 row[i] = (row[i] - minmax[i][0]) / (minmax[i][1] - minmax[i][0])
                           
     
+def build_k_indices(y, k_fold, seed):
+    """build k indices for k-fold."""
+    num_row = y.shape[0]
+    interval = int(num_row / k_fold)
+    np.random.seed(seed)
+    indices = np.random.permutation(num_row)
+    k_indices = [indices[k * interval: (k + 1) * interval]
+                 for k in range(k_fold)]
+    return np.array(k_indices)
+
+
+def cross_validation(y, x, k_indices, num_k, lambda_, degree):
+    """return the loss of ridge regression."""
+    x_k, y_k = x[k_indices], y[k_indices]
+    Weights = []
+    Train_accs = []
+    Test_accs = []
+
     
+    for k in range(num_k):
+        first = True
+        for i in range(len(k_indices)):
+            if (i != k):
+                if first:
+                    x_train = x_k[i]
+                    y_train = y_k[i]
+                else:
+                    x_train = np.concatenate(x_train, x_k[i])
+                    y_train = np.concatenate(y_train, y_k[i])
+            else :
+                x_test = x_k[i]
+                y_test = y_k[i]
+                
+        phi_x_train = build_poly(x_train, degree)
+        phi_x_test = build_poly(x_test, degree)
+        loss_tr, weights = ridge_regression(y_train, phi_x_train, lambda_)        
+        cat_accuracy_train, f1_score_train = metrics(weights,y_train,phi_x_train)         
+        cat_accuracy_test, f1_score_test= metrics(weights,y_test,phi_x_test)
+        Weights.append(weights)
+        Train_accs.append(cat_accuracy_train)
+        Test_accs.append(cat_accuracy_test)
+    
+    Train_accs = np.array(Train_accs)
+    Test_accs = np.array(Test_accs)
+    Weights = np.array(Weights)
+
+
+    
+    
+    return np.mean(Train_accs), np.mean(Test_accs), np.mean(Weights) 
     
     
 
@@ -141,10 +190,10 @@ def logistic_regression(y, tx, w):
 
 def penalized_logistic_regression(y, tx, w, lambda_):
     """return the loss, gradient, and hessian."""
-    loss = calculate_loss(y,tx,w) + lambda_/2*np.dot(w.T,w)
-    gradient = calculate_gradient(y,tx,w) + lambda_*w
-    hessian = calculate_hessian(y,tx,w) + lambda_
-    return loss, gradient, hessian
+    loss = compute_loss_log_reg(y,tx,w) + lambda_/2*np.dot(w.T,w)
+    gradient = compute_gradient_log_reg(y,tx,w) + lambda_*w
+    #hessian = compute_hessian_log_reg(y,tx,w) + lambda_
+    return loss, gradient#, hessian
 
 
 def least_squares_GD(y, tx, initial_w, max_iters, gamma):
@@ -206,14 +255,20 @@ def ridge_regression(y, tx, lambda_):
     loss = compute_rmse(y, tx, ws)
     return loss, ws
 
-
 def build_poly(x, degree):
-    """polynomial basis functions for input data x, for j=0 up to j=degree."""
-    phi = [[0]*(degree+1) for n in range(len(x))]
-    for n in range(len(x)):
-        for i in range(degree+1):
-            phi[n][i] = x[n]**i
-    return np.array(phi)
+    """Build polynomial features for input data x."""
+    # 0 to degree
+    phi_x = np.ones((len(x), 1))
+    for deg in range(1, degree+1):
+        phi_x = np.c_[phi_x, np.power(x, deg)]
+    # square root of absolute value
+    phi_x = np.c_[phi_x, np.sqrt(np.abs(x))]
+    # cross terms
+    # vectorize the calculation
+    # ref: https://stackoverflow.com/questions/22041561/python-all-possible-products-between-columns
+    i, j = np.triu_indices(x.shape[1], 1)
+    phi_x = np.c_[phi_x, x[:, i] * x[:, j]]
+    return phi_x
 
 
 def polynomial_regression(y, x, degrees):
@@ -236,7 +291,7 @@ def learning_by_gradient_descent(y, tx, w, gamma):
     """
     loss = compute_loss_log_reg(y, tx, w)
     gradient = compute_gradient_log_reg(y, tx, w)
-    w -= gamma*gradient
+    w = w - gamma*gradient
     return loss, w
 
 def learning_by_newton_method(y, tx, w, gamma):
@@ -245,7 +300,7 @@ def learning_by_newton_method(y, tx, w, gamma):
     return the loss and updated w.
     """
     loss, gradient, hessian = logistic_regression(y, tx, w)
-    w -= gamma*np.dot(np.linalg.inv(hessian),gradient)
+    w = w - gamma*np.dot(np.linalg.inv(hessian),gradient)
     return loss, w
 
 def learning_by_penalized_gradient(y, tx, w, gamma, lambda_):
@@ -253,29 +308,10 @@ def learning_by_penalized_gradient(y, tx, w, gamma, lambda_):
     Do one step of gradient descent, using the penalized logistic regression.
     Return the loss and updated w.
     """
-    loss, gradient, hessian = penalized_logistic_regression(y, tx, w, lambda_)
-    w -= gamma*gradient
+    loss, gradient= penalized_logistic_regression(y, tx, w, lambda_)#, hessian 
+    w = w - gamma*gradient
     return loss, w
 
-"""
-def reg_logistic_regression(y, tx,  ws, num_iterations, lr, lambda_): #y_test, tx_test,
-    for iteration in range(num_iterations):
-        ws = ws - lr * compute_reg_log_gradient(tx, y, ws, lambda_)
-        if (iteration % 10000 == 0):
-            loss = cost_log_regression(tx, y, ws)
-            acc, f1 = metrics(ws, y, tx, predict_labels_log_reg)
-            #acc_test, f1_test = metrics(ws, y_test, tx_test, predict_labels_log_reg)
-            print("Step: ", iteration, " loss: ", loss,
-                  " accuracy_train: ", acc, " f1_score_train: ", f1)# ,
-                  #" accuracy_test: ", acc_test, " f1_score_test: ", f1_test)
-    loss = cost_log_regression(tx, y, ws)
-    acc, f1 = metrics(ws, y, tx, predict_labels_log_reg)
-    #acc_test, f1_test = metrics(ws, y_test, tx_test, predict_labels_log_reg)
-    print("Step: ", iteration, " loss: ", loss,
-          " accuracy_train: ", acc, " f1_score_train: ", f1)# ,
-          #" accuracy_test: ", acc_test, " f1_score_test: ", f1_test)
-    return loss, ws
-"""
 
 
 # Metrics : accuracy, f1_score
