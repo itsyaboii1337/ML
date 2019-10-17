@@ -90,34 +90,61 @@ def compute_loss(y, tx, w):
 def compute_rmse(y, tx, w):
     return np.sqrt(2*compute_loss(y, tx, w))
 
-def sigmoid_activation(x):
-    return 1.0/(1+np.exp(-x))
+def sigmoid(t):
+    """apply sigmoid function on t."""
+    return 1.0/(1+np.exp(-t))
 
-def cost_log_regression(tx, y, w):
+def compute_loss_log_reg(y, tx, w):
+    """compute the cost by negative log likelihood."""
     N = y.shape[0]
-    sigmoid_prediction = sigmoid_activation(np.dot(tx, w))
-    # Using cross entropy loss : https://en.wikipedia.org/wiki/Cross_entropy
-    loss = -np.mean(y*np.log(sigmoid_prediction)+(1-y)
-                    * np.log(1-sigmoid_prediction))
+    loss = 0
+    for n in range(N):
+        sigmoid_value = sigmoid(np.dot(tx[n,:].T, w))
+        loss += -(y[n]*np.log(sigmoid_value)+(1-y[n])*np.log(1-sigmoid_value))
     return loss
 
 # Gradient functions
 
-
 def compute_gradient(y, tx, w):
-
     N = y.size
     return -np.dot(np.transpose(tx), y-np.dot(tx, w))/N
 
 
-def compute_log_gradient(tx, y, ws):
-    sigmoid_prediction = sigmoid_activation(np.dot(tx, ws))
-    return np.dot(tx.T, sigmoid_prediction - y)
+def compute_gradient_log_reg(y, tx, w):
+    """compute the gradient of loss."""
+    sigmoid_value = sigmoid(np.dot(tx,w))
+    return np.dot(tx.T,sigmoid_value-y)
 
-def compute_reg_log_gradient(tx, y, ws, lambda_):
-    return compute_log_gradient(tx, y, ws) + 2*lambda_*ws
+# Hessian functions
+
+def compute_hessian_log_reg(y, tx, w):
+    """return the hessian of the loss function."""
+    N = y.shape[0]
+    hessian_diag = np.zeros(N)
+    for n in range(N):
+        sigmoid_value = sigmoid(np.dot(tx[n,:],w))
+        hessian_diag[n] = np.dot(sigmoid_value,1-sigmoid_value)
+    S = np.diag(hessian_diag)
+    return np.dot(tx.T,np.dot(S,tx))
+
+
+
 
 # Regression functions
+
+def logistic_regression(y, tx, w):
+    """return the loss, gradient, and hessian."""
+    loss = compute_loss_log_reg(y, tx, w)
+    gradient = compute_gradient_log_reg(y, tx, w)
+    hessian = compute_hessian_log_reg(y, tx, w)
+    return loss, gradient, hessian
+
+def penalized_logistic_regression(y, tx, w, lambda_):
+    """return the loss, gradient, and hessian."""
+    loss = calculate_loss(y,tx,w) + lambda_/2*np.dot(w.T,w)
+    gradient = calculate_gradient(y,tx,w) + lambda_*w
+    hessian = calculate_hessian(y,tx,w) + lambda_
+    return loss, gradient, hessian
 
 
 def least_squares_GD(y, tx, initial_w, max_iters, gamma):
@@ -200,28 +227,37 @@ def polynomial_regression(y, x, degrees):
         loss, ws = least_squares_rmse(y, phi_x)
     return loss, ws
 
+# One step gradient descent
 
+def learning_by_gradient_descent(y, tx, w, gamma):
+    """
+    Do one step of gradient descen using logistic regression.
+    Return the loss and the updated w.
+    """
+    loss = compute_loss_log_reg(y, tx, w)
+    gradient = compute_gradient_log_reg(y, tx, w)
+    w -= gamma*gradient
+    return loss, w
 
+def learning_by_newton_method(y, tx, w, gamma):
+    """
+    Do one step on Newton's method.
+    return the loss and updated w.
+    """
+    loss, gradient, hessian = logistic_regression(y, tx, w)
+    w -= gamma*np.dot(np.linalg.inv(hessian),gradient)
+    return loss, w
 
+def learning_by_penalized_gradient(y, tx, w, gamma, lambda_):
+    """
+    Do one step of gradient descent, using the penalized logistic regression.
+    Return the loss and updated w.
+    """
+    loss, gradient, hessian = penalized_logistic_regression(y, tx, w, lambda_)
+    w -= gamma*gradient
+    return loss, w
 
-def logistic_regression(y, tx,  ws, num_iterations, lr): #y_test, tx_test,
-    for iteration in range(num_iterations):
-        ws = ws - lr * compute_log_gradient(tx, y, ws)
-        if (iteration % 10000 == 0):
-            loss = cost_log_regression(tx, y, ws)
-            acc, f1 = metrics(ws, y, tx, predict_labels_log_reg)
-            #acc_test, f1_test = metrics(ws, y_test, tx_test, predict_labels_log_reg)
-            print("Step: ", iteration, " loss: ", loss,
-                  " accuracy_train: ", acc, " f1_score_train: ", f1)# ,
-                  #" accuracy_test: ", acc_test, " f1_score_test: ", f1_test)
-    loss = cost_log_regression(tx, y, ws)
-    acc, f1 = metrics(ws, y, tx, predict_labels_log_reg)
-    #acc_test, f1_test = metrics(ws, y_test, tx_test, predict_labels_log_reg)
-    print("Step: ", iteration, " loss: ", loss,
-          " accuracy_train: ", acc, " f1_score_train: ", f1)# ,
-          #" accuracy_test: ", acc_test, " f1_score_test: ", f1_test)
-    return loss, ws
-
+"""
 def reg_logistic_regression(y, tx,  ws, num_iterations, lr, lambda_): #y_test, tx_test,
     for iteration in range(num_iterations):
         ws = ws - lr * compute_reg_log_gradient(tx, y, ws, lambda_)
@@ -239,7 +275,7 @@ def reg_logistic_regression(y, tx,  ws, num_iterations, lr, lambda_): #y_test, t
           " accuracy_train: ", acc, " f1_score_train: ", f1)# ,
           #" accuracy_test: ", acc_test, " f1_score_test: ", f1_test)
     return loss, ws
-
+"""
 
 
 # Metrics : accuracy, f1_score
