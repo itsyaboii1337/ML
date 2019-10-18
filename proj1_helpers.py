@@ -101,35 +101,33 @@ def preprocessing(y,tx, train = True, columns_to_keep = None):
 
         Indices1 = tx[:,22]==1
         y1, x1 = y[Indices1], tx[np.where(Indices1)]
+        
 
-        Indices2 = tx[:,22]==2
+        Indices2 = np.logical_or(tx[:,22]==2, tx[:,22]==3)
         y2, x2 = y[Indices2], tx[np.where(Indices2)]
 
-        Indices3 = tx[:,22]==3
-        y3, x3 = y[Indices3], tx[np.where(Indices3)]
+        #Indices3 = tx[:,22]==3
+        #y3, x3 = y[Indices3], tx[np.where(Indices3)]
         
         x0, columns_to_remove0 = clean_xi(x0, train)
         x1, columns_to_remove1 = clean_xi(x1, train)
         x2, columns_to_remove2 = clean_xi(x2, train)
-        x3, columns_to_remove3 = clean_xi(x3, train)
-        return [(y0,x0),(y1,x1),(y2,x2),(y3,x3), (~columns_to_remove0,~columns_to_remove1,~columns_to_remove2,~columns_to_remove3)]
+        #x3, columns_to_remove3 = clean_xi(x3, train)
+        return [(y0,x0),(y1,x1),(y2,x2), (~columns_to_remove0,~columns_to_remove1,~columns_to_remove2)]
     else:
-        i0, i1, i2, i3 = columns_to_keep
+        i0, i1, i2 = columns_to_keep
         
         rows0 = tx[:,22]==0
         x0 = tx[np.where(rows0)]
         rows1 = tx[:,22]==1
         x1 = tx[np.where(rows1)]
-        rows2 = tx[:,22]==2
+        rows2 = np.logical_or(tx[:,22]==2, tx[:,22]==3)
         x2 = tx[np.where(rows2)]
-        rows3 = tx[:,22]==3
-        x3 = tx[np.where(rows3)]
         
         x0 = clean_xi(x0, train, i0)
         x1 = clean_xi(x1, train, i1)
         x2 = clean_xi(x2, train, i2)
-        x3 = clean_xi(x3, train, i3)
-        return [x0, x1, x2, x3, rows0, rows1, rows2, rows3]
+        return [x0, x1, x2, rows0, rows1, rows2]
     
     
     
