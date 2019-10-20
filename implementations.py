@@ -31,35 +31,13 @@ def dataset_minmax(tx):
         minmax.append([value_min, value_max])
     return minmax
 
-# calculate column means
-
-
-def column_means(tx):
-    means = [0 for i in range(len(tx[0]))]
-    for i in range(len(tx[0])):
-        col_values = [row[i] for row in tx]
-        means[i] = sum(col_values) / float(len(tx))
-    return means
-
-# calculate column standard deviations
-
-
-def column_stdevs(tx, means):
-    stdevs = [0 for i in range(len(tx[0]))]
-    for i in range(len(tx[0])):
-        variance = [pow(row[i]-means[i], 2) for row in tx]
-        stdevs[i] = sum(variance)
-    stdevs = [np.sqrt(x/(float(len(tx)-1))) for x in stdevs]
-    return stdevs
-
-# standardize dataset
-
-
-def standardize_dataset(tx, means, stdevs):
-    for row in tx:
-        for i in range(len(row)):
-            if (stdevs[i]!=0):
-                row[i] = (row[i] - means[i]) / stdevs[i]
+def standardize(x):
+    """Standardize the original data set."""
+    mean_x = np.mean(x, axis=0)
+    x = x - mean_x
+    std_x = np.std(x, axis=0)
+    x = x / std_x
+    return x, mean_x, std_x
 
 # Rescale dataset columns to the range 0-1
 
@@ -92,6 +70,7 @@ def cross_validation(y, x, k_indices, num_k, lambda_, degree):
     
     for k in range(num_k):
         first = True
+        x_train, y_train, x_test, y_test = [],[],[],[]
         for i in range(len(k_indices)):
             if (i != k):
                 if first:
@@ -120,7 +99,8 @@ def cross_validation(y, x, k_indices, num_k, lambda_, degree):
 
     
     
-    return np.mean(Train_accs), np.mean(Test_accs), np.mean(Weights) 
+    return np.mean(Train_accs), np.mean(Test_accs), Weights[0]
+
     
     
 
@@ -319,6 +299,26 @@ def learning_by_penalized_gradient(y, tx, w, gamma, lambda_):
 def metrics(weights, y_test, x_test, predict=predict_labels):
     tp, fp, tn, fn = 0, 0, 0, 0
     y_pred = predict(weights, x_test)
+    for i in range(len(y_pred)):
+        if (y_pred[i] == 1):
+            if (y_test[i] == 1):
+                tp += 1
+            else:
+                fp += 1
+        else:
+            if (y_test[i] == 1):
+                fn += 1
+            else:
+                tn += 1
+    #precision = tp/(tp+fp)
+    #recall = tp/(tp+fn)
+    accuracy = (tp+tn)/(tp+tn+fp+fn)
+    f1_score = 2*tp/(2*tp+tn+fp+fn)
+
+    return accuracy, f1_score
+
+def metrics_check(y_test, y_pred):
+    tp, fp, tn, fn = 0, 0, 0, 0
     for i in range(len(y_pred)):
         if (y_pred[i] == 1):
             if (y_test[i] == 1):

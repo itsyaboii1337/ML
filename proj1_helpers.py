@@ -75,21 +75,23 @@ def preprocessing(y,tx, train = True, columns_to_keep = None):
             columns_to_remove = nan_columns | even_columns
             #print("columns_to_remove :: ",columns_to_remove)
             x = x[:,~columns_to_remove]
-
+            """
             # normalize the dataset
             minmax = implementations.dataset_minmax(x)
             implementations.normalize_dataset(x, minmax)
-
+            """            
+            x,_,_ = implementations.standardize(x)
             # Insert a 1 column for non null intersection
             x = np.insert(x, 0, 1, axis=1)
             return x, columns_to_remove
         else:            
             x = x[:,columns_to_keep]
-            
+            """            
             # normalize the dataset
             minmax = implementations.dataset_minmax(x)
             implementations.normalize_dataset(x, minmax)
-
+            """
+            x,_,_ = implementations.standardize(x)
             # Insert a 1 column for non null intersection
             x = np.insert(x, 0, 1, axis=1)
             return x
