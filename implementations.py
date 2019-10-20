@@ -49,14 +49,14 @@ def normalize_dataset(tx, minmax):
                 row[i] = (row[i] - minmax[i][0]) / (minmax[i][1] - minmax[i][0])
                           
     
-def build_k_indices(y, k_fold, seed):
+def build_k_indices(y, k_num, seed):
     """build k indices for k-fold."""
     num_row = y.shape[0]
-    interval = int(num_row / k_fold)
+    interval = int(num_row / k_num)
     np.random.seed(seed)
     indices = np.random.permutation(num_row)
     k_indices = [indices[k * interval: (k + 1) * interval]
-                 for k in range(k_fold)]
+                 for k in range(k_num)]
     return np.array(k_indices)
 
 
