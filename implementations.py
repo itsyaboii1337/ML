@@ -71,17 +71,12 @@ def cross_validation(y, x, k_indices, num_k, lambda_, degree):
     for k in range(num_k):
         first = True
         x_train, y_train, x_test, y_test = [],[],[],[]
-        for i in range(len(k_indices)):
-            if (i != k):
-                if first:
-                    x_train = x_k[i]
-                    y_train = y_k[i]
-                else:
-                    x_train = np.concatenate(x_train, x_k[i])
-                    y_train = np.concatenate(y_train, y_k[i])
-            else :
-                x_test = x_k[i]
-                y_test = y_k[i]
+        
+        x_test = x_k[k]
+        y_test = y_k[k]
+        
+        x_train = np.concatenate(np.delete(x_k, k, axis = 0))
+        y_train = np.concatenate(np.delete(y_k, k, axis = 0))
                 
         phi_x_train = build_poly(x_train, degree)
         phi_x_test = build_poly(x_test, degree)
