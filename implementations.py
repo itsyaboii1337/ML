@@ -296,6 +296,9 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters=1000, gamma=0.0
         for n in range(N):
             grad = compute_gradient_log_reg(y,tx,ws) + lambda_*ws
             ws = ws - gamma*grad
+        loss = compute_loss_reg_log_reg(y, tx, ws)
+        print("The loss for step {} is {}.".format(i, loss))
+        
     loss = compute_loss_reg_log_reg(y, tx, ws)
     return loss, ws
 
@@ -315,8 +318,9 @@ def reg_logistic_regression_newton(y, tx, lambda_, initial_w, max_iters=1000, ga
     for i in range(max_iters):
         loss, gradient, hessian = compute_pen_log_reg(y, tx, ws, lambda_)
         ws = ws - gamma*np.dot(np.linalg.inv(hessian),gradient)
+        print("The loss for step {} is {}.".format(i, loss))
     return loss, ws
-    
+
 # Neural Network (1 weighter layer, 1 bias layer, activation layer)
 def create_neural_network(layer_array, input_dims):
     weights = []
