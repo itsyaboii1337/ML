@@ -229,7 +229,8 @@ def least_squares_SGD(y, tx, initial_w, max_iters=1000, gamma=0.001):
     N = y.shape[0]
     for i in range(max_iters):
         for n in range(N):
-            grad = compute_gradient_mse(y[n], tx[n], ws)
+            rand_ind = np.random.randit(0, N)
+            grad = compute_gradient_mse(y[rand_ind], tx[rand_ind], ws)
             ws = ws - gamma*grad
     loss = compute_mse(y, tx, ws)
     return loss, ws
