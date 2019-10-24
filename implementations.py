@@ -228,10 +228,10 @@ def least_squares_SGD(y, tx, initial_w, max_iters=1000, gamma=0.001):
     ws = initial_w
     N = y.shape[0]
     for i in range(max_iters):
-        for n in range(N):
-            rand_ind = np.random.randint(0, N)
-            grad = compute_gradient_mse(y[rand_ind], tx[rand_ind], ws)
-            ws = ws - gamma*grad
+        #for n in range(N):
+        rand_ind = np.random.randint(0, N)
+        grad = compute_gradient_mse(y[rand_ind], tx[rand_ind], ws)
+        ws = ws - gamma*grad
     loss = compute_mse(y, tx, ws)
     return loss, ws
 
@@ -275,8 +275,11 @@ def logistic_regression(y, tx, initial_w, max_iters=1000, gamma=0.001):
     N = y.shape[0]
     for i in range(max_iters):
         for n in range(N):
-            grad = compute_gradient_log_reg(y[n], tx[n], ws)
+            rand_ind = np.random.randint(0, N)
+            grad = compute_gradient_log_reg(y[rand_ind], tx[rand_ind], ws)
             ws = ws - gamma*grad
+        loss = compute_loss_log_reg(y, tx, ws)
+        print("The loss for step {} is {}.".format(i,loss))
     loss = compute_loss_log_reg(y, tx, ws)
     return loss, ws
 
@@ -295,12 +298,13 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters=1000, gamma=0.0
     N = y.shape[0]
     for i in range(max_iters):
         for n in range(N):
-            grad = compute_gradient_log_reg(y,tx,ws) + lambda_*ws
+            rand_ind = np.random.randint(0, N)
+            grad = compute_gradient_log_reg(y[rand_ind], tx[rand_ind], ws) + lambda_*ws
             ws = ws - gamma*grad
-        loss = compute_loss_reg_log_reg(y, tx, ws)
+        loss = compute_loss_reg_log_reg(y, tx, ws, lambda_)
         print("The loss for step {} is {}.".format(i, loss))
         
-    loss = compute_loss_reg_log_reg(y, tx, ws)
+    loss = compute_loss_reg_log_reg(y, tx, ws, lambda_)
     return loss, ws
 
 def reg_logistic_regression_newton(y, tx, lambda_, initial_w, max_iters=1000, gamma=0.001):
