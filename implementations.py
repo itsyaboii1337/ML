@@ -50,9 +50,6 @@ def cross_validation(y, x, k_indices, num_k, lambda_, degree):
     Train_accs = np.array(Train_accs)
     Test_accs = np.array(Test_accs)
     Weights = np.array(Weights)
-
-
-    
     
     return np.mean(Train_accs), np.mean(Test_accs), Weights[0]
 
@@ -96,21 +93,22 @@ def relu(x):
         return 0
     else:
         return x
-
+    
+    
 def compute_loss_log_reg(y, tx, w):
     """
-    Compute the cost by negative log likelihood.
-    Arguments:
     - y: matrix of ground truth results
     - tx: features matrix
     - w: weights for the model
     """
-    N = y.shape[0]
-    loss = 0
-    for n in range(N):
-        sigmoid_value = sigmoid(np.dot(tx[n,:].T, w))
-        loss += -(y[n]*np.log(sigmoid_value)+(1-y[n])*np.log(1-sigmoid_value))
-    return loss
+    eps = 1e-15
+    sig = sigmoid(tx.dot(w))
+    sig = np.clip(sig, eps, 1-eps)
+
+    loss = y.T.dot(np.log(sig)) + (1 - y).T.dot(np.log(1 - sig))
+
+    return np.squeeze(- loss).item()
+
 
 def compute_loss_reg_log_reg(y, tx, w, lambda_):
     """
