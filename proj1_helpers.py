@@ -44,12 +44,9 @@ def split_data(x, y, ratio=0.8, seed=1):
     """
     # Set the seed
     np.random.seed(seed)
-    ids = [i for i in range(len(x))]
-    train_ids = np.random.choice(ids, int(ratio*len(ids)))
-    test_ids = []
-    for i in range(len(ids)):
-        if not(i in train_ids):
-            test_ids.append(i)
+    ids = np.random.rand(len(y))
+    train_ids = ids<0.9
+    test_ids = ids>0.9
 
     return x[train_ids], y[train_ids], x[test_ids], y[test_ids]
 
