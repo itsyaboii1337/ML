@@ -324,6 +324,42 @@ def reg_logistic_regression_newton(y, tx, lambda_, initial_w, max_iters=1000, ga
         print("The loss for step {} is {}.".format(i, loss))
     return ws, loss
 
+def grid_search_ridge_regression(y_train, x_train, y_test, x_test, lambdas, degrees):
+    """
+    Grid search on polynomial degrees and penalizing parameter with ridge regression
+    Arguments:
+    - y_train: matrix of ground truth results for training
+    - x_train: features matrix for training
+    - y_test: matrix of ground truth results for testing
+    - x_test: features matrix for testing
+    - lambdas: list of penalizing parameters to be tested during the grid search
+    - degrees: list of degrees to be tested during the grid search
+    """
+    data = []
+    for degree in degrees:
+        data_nested = []        
+        phi_x_train = build_poly(x_train, degree)
+        phi_x_test = build_poly(x_test, degree)
+        for lambda_ in lambdas:
+            w = ridge_regression(y_train,phi_x_train,lambda_)[0]
+            y_pred_train = predict_labels(w, phi_x_train)
+            acc_train,_ = metrics(y_train,y_pred_train)
+            y_pred_test = predict_labels(w, phi_x_test)
+            acc_test,_ = metrics(y_test,y_pred_test)
+            data_nested.append([acc_train, acc_test, degree, lambda_, w])
+        data_nested = np.array(data_nested)
+        index_best_value = np.where(data_nested[:,1] == np.amax(data_nested[:,1]))
+        best_value = data_nested[index_best_value][0]
+        #print("Running :: Training accuracy: ",best_value[0]," ,testing accuracy: ",best_value[1]," ,degree: ",best_value[2]," , lambda : ",best_value[3])
+        data.append(best_value)
+    data = np.array(data)
+    index_best_value = np.where(data[:,1] == np.amax(data[:,1]))
+    best_value = data[index_best_value][0]
+    acc_train, acc_test, degree, lambda_, w = best_value[0], best_value[1], best_value[2], best_value[3], best_value[4]
+    print("Final :: Training accuracy: ",acc_train," ,testing accuracy: ",acc_test," ,degree: ",degree," , lambda : ",lambda_)
+    
+    return degree, lambda_, w
+
 # Neural Network (1 weighter layer, 1 bias layer, activation layer)
 def create_neural_network(layer_array, input_dims):
     weights = []

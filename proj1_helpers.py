@@ -67,73 +67,73 @@ def standardize(x):
     x = x / std_x
     return x, mean_x, std_x
     
-
-def preprocessing(y,tx, train = True, columns_to_keep = None):    
+def preprocessing(y, x, train=True,mean_x0=[], std_x0=[], mean_x1=[], std_x1=[], mean_x2=[], std_x2=[]):
     """
-    Return a cleaned dataset (y,tx), operations on it depends whether it's a training dataset or a testing dataset
+    This method cleans the data, split the data accordingly to the number of jets,
+    select the features for each category and standardize them.
     Arguments:
-    - y: the column to be predicted, can be None if in testing mode
-    - tx: the features matrix
-    - train: whether we are in training mode or testing mode, default: training mode
-    - columns_to_keep: required if we are in testing mode
+    - y: the column of ground truth results
+    - x: the features matrix
+    - train: True if we preprocess a dataset for training, default: True
     """
-    
-    def clean_xi(xi, train, columns_to_keep = None):
-        """ Function to clean in depth each categorical dataset """
-        x = copy.deepcopy(xi)
-        # Set the -999 value to the median of the column
-        x = np.where(x==-999, np.nan, x)
-        col_median = np.nanmedian(x, axis=0)
-        inds_nan = np.where(np.isnan(x))
-        x[inds_nan] = np.take(col_median, inds_nan[1])
-        
-        if train:
-            # Remove the Nan and constant columns
-            nan_columns = np.all(np.isnan(x), axis=0)
-            cst_columns = np.all(x == x[0,:], axis = 0)
-            columns_to_remove = nan_columns | cst_columns
-            x = x[:,~columns_to_remove]
-            # Standardize the features         
-            x,_,_ = implementations.standardize(x)
-            # Insert a 1 column for a non null intersection
-            x = np.insert(x, 0, 1, axis=1)
-            return x, columns_to_remove
-        else:  
-            # Remove the same columns that were removed during the preprocessing of the training phase   
-            x = x[:,columns_to_keep]
-            # Standardize the features  
-            x,_,_ = implementations.standardize(x)
-            # Insert a 1 column for non null intersection
-            x = np.insert(x, 0, 1, axis=1)
-            return x
+    # Preprocessing the dataset, log(1+x) of heavy tailed columns, augmentation by adding ones.
+    x = copy.deepcopy(x)
+    x = np.where(x==-999, np.nan, x)
+    cols = [0, 1, 2, 3, 5, 8, 9, 10, 13, 16, 19, 21, 23, 26, 29]
+    x[:, cols] = np.log1p(x[:, cols])
 
-    # Split the rows base on categories of 22th column of features which is the number of jets       
-    rows0 = tx[:,22]==0
-    rows1 = tx[:,22]==1
-    rows2 = np.logical_or(tx[:,22]==2, tx[:,22]==3)
+    # Split the dataset accordingly to the number of jets, we group 2 and 3 for repartition issues
+    rows0 = x[:,22]==0
+    rows1 = x[:,22]==1
+    rows2 = np.logical_or(x[:,22]==2, x[:,22]==3)
+    
+    x0 = x[np.where(rows0)]
+    x1 = x[np.where(rows1)]
+    x2 = x[np.where(rows2)]
+    if train:
+        y0 = y[rows0]
+        y1 = y[rows1]
+        y2 = y[rows2]
+    
+    def cleanup_xi(feat_matrix, columns_to_delete=[], train=True, mean_xi=[], std_xi=[]):
+        """
+        This method remove the columns to delete, set nanvalues to median value in first column,
+        standardize the data and add 1 column to the features matrix.
+        Arguments:
+        - feat_matrix: features matrix
+        - columns_to_delete: columns to be deleted, default=[]
+        - mean_xi: mean of each columns for the category i (to be used for testing dataset), default=[]
+        - std_xi: standard deviation of each columns for the category i (to be used for testing dataset), default=[]
+        """
+        xi = copy.deepcopy(feat_matrix)
+        xi = np.delete(xi, columns_to_delete, axis = 1)
+        xi[:,0] = set_median(xi[:,0])
+        if train:
+            xi, mean_xi, std_xi = standardize(xi)
+            xi = np.insert(xi, 0, 1, axis=1)
+            return xi, mean_xi, std_xi
+        xi = (xi-mean_xi)/std_xi
+        xi = np.insert(xi, 0, 1, axis=1)
+        return xi
 
     if train:
-        # Split the training dataset 
-        y0, x0 = y[rows0], tx[np.where(rows0)]
-        y1, x1 = y[rows1], tx[np.where(rows1)]
-        y2, x2 = y[rows2], tx[np.where(rows2)]
-        # Clean the training dataset with the nested function and collect removed columns
-        x0, columns_to_remove0 = clean_xi(x0, train)
-        x1, columns_to_remove1 = clean_xi(x1, train)
-        x2, columns_to_remove2 = clean_xi(x2, train)
-        return [(y0,x0),(y1,x1),(y2,x2), (~columns_to_remove0,~columns_to_remove1,~columns_to_remove2)]
-    else:
-        # Get back the columns that should be kept in the testing dataset
-        i0, i1, i2 = columns_to_keep
-        # Split the testing dataset
-        x0 = tx[np.where(rows0)]        
-        x1 = tx[np.where(rows1)]        
-        x2 = tx[np.where(rows2)]
-        # Clean the testing dataset with the nested function using the columns that were remove during the training phase
-        x0 = clean_xi(x0, train, i0)
-        x1 = clean_xi(x1, train, i1)
-        x2 = clean_xi(x2, train, i2)
-        return [x0, x1, x2, rows0, rows1, rows2]
+        x0, mean_x0, std_x0 = cleanup_xi(x0, [4, 5, 6, 12, 15, 18, 20, 22, 23, 24, 25, 26, 27, 28, 29], True)    
+        x1, mean_x1, std_x1 = cleanup_xi(x1, [4, 5, 6, 12, 15, 18, 20, 22, 25, 26, 27, 28], True) 
+        x2, mean_x2, std_x2 = cleanup_xi(x2, [15, 18, 20, 22, 28], True)
+
+        # Split the dataset with 90%
+        ratio = 0.90
+        x0, y0, x0_test, y0_test = split_data(x0, y0, ratio, seed=1)
+        x1, y1, x1_test, y1_test = split_data(x1, y1, ratio, seed=1)
+        x2, y2, x2_test, y2_test = split_data(x2, y2, ratio, seed=1)
+        return (y0,x0,mean_x0,std_x0,y1,x1,mean_x1,std_x1,y2,x2,mean_x2,std_x2, rows0, rows1, rows2)
+
+    x0 = cleanup_xi(x0, [4, 5, 6, 12, 15, 18, 20, 22, 23, 24, 25, 26, 27, 28, 29], False, mean_x0, std_x0)    
+    x1 = cleanup_xi(x1, [4, 5, 6, 12, 15, 18, 20, 22, 25, 26, 27, 28], False, mean_x1, std_x1) 
+    x2 = cleanup_xi(x2, [15, 18, 20, 22, 28], False, mean_x2, std_x2)
+    return (x0, x1, x2, rows0, rows1, rows2)
+    
+
 
 def build_poly(x, degree):
     """
