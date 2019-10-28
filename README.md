@@ -1,5 +1,5 @@
-# Higgs Boson Machine Learning Challenge
-EPFL CS-433 Machine Learning - Project 1
+# EPFL Machine Learning Higgs 2019
+EPFL: CS-433 Machine Learning - Project 1
 
 EPFL Machine Learning course held [an InClass Prediction Competition in Kaggle](https://www.kaggle.com/c/epfml18-higgs), which is a copy of [the earlier official Kaggle competition by CERN](https://www.kaggle.com/c/higgs-boson). This repository contains our winning solution to this competition. Our team **RED** finally ranked **11 of 201 teams**. 
 
