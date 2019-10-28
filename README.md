@@ -10,7 +10,7 @@ EPFL: CS-433 Machine Learning - Project 1
 * ```Python 3.6``` 
 * ```NumPy 1.17``` 
 
-## Modules and Notebook
+## Modules
 
 ### ```proj1_helpers.py```
 - `load_csv_data`: Load csv data into numpy arrays.
