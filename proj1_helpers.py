@@ -50,6 +50,11 @@ def split_data(x, y, ratio=0.8, seed=1):
 
     return x[train_ids], y[train_ids], x[test_ids], y[test_ids]
 
+def set_median(x):
+    median = np.nanmedian(x, axis=0)
+    inds_nan = np.isnan(x)
+    x[inds_nan] = median
+    return x
 
 def standardize(x):
     """
@@ -149,6 +154,7 @@ def build_poly(x, degree):
 
 
 
+
 """ Prediction tools """
 
 def predict_labels(weights, data):
@@ -187,6 +193,38 @@ def metrics(y_test, y_pred):
 
     return accuracy, f1_score#, precision, recall
 
+def build_k_indices(y, k_fold, seed):
+    """build k indices for k-fold."""
+    num_row = y.shape[0]
+    interval = int(num_row / k_fold)
+    np.random.seed(seed)
+    indices = np.random.permutation(num_row)
+    k_indices = [indices[k * interval: (k + 1) * interval]
+                 for k in range(k_fold)]
+    return np.array(k_indices)
+
+#TODO: Not working
+def cross_validation(y, x, k_fold, lambda_, degree):
+    """return the loss of ridge regression."""
+    k_indices = build_k_indices(y, k_fold, 1)
+    x_k, y_k = x[k_indices], y[k_indices]
+    Loss_tr = []
+    Loss_te = []
+    for k in range(k_fold): 
+        x_train = x_k[k]
+        y_train = y_k[k]
+        x_test = x_k[~k]
+        y_test = y_k[~k]        
+        phi_x_train = build_poly(x_train, degree)
+        phi_x_test = build_poly(x_test, degree)
+        loss_tr, weights = implementations.ridge_regression(y_train, phi_x_train, lambda_)
+        loss_te = implementations.compute_mse(y_test, phi_x_test, weights)
+        Loss_tr.append(loss_tr)
+        Loss_te.append(loss_te)
+    Loss_tr = np.array(Loss_tr)
+    Loss_te = np.array(Loss_te)
+    
+    return Loss_tr.mean(), Loss_te.mean()
 
 """ Exporting the results tool """
 
