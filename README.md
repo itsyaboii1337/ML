@@ -20,8 +20,8 @@ EPFL: CS-433 Machine Learning - Project 1
 - `preprocessing`: Preprocessing of the data (log-scale data, categorical splitting, delete highly correlated columns, remove nan columns, replace nan values by column median)
 - `build_poly`: Turns numpy array into polynomial augmentation of itself
 - `predict_labels & predict_labels_log_reg`: returns prediction based on the weights of the model
-- `metrics`: returns the accuracy and F1 score of a prediction
-- `create_csv_submission`: makes csv submission for given prediction
+- `metrics`: Returns the accuracy and F1 score of a prediction
+- `create_csv_submission`: Makes csv submission for given prediction
 
 ### ```implementations.py```
 - `cross_validation`: Cross validation
