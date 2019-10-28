@@ -10,7 +10,7 @@ EPFL: CS-433 Machine Learning - Project 1
 * ```Python 3.6``` 
 * ```NumPy 1.17``` 
 
-## Modules
+## Submitted Files
 
 ### ```proj1_helpers.py```
 - `load_csv_data`: Load csv data into numpy arrays.
@@ -19,9 +19,9 @@ EPFL: CS-433 Machine Learning - Project 1
 - `standardize`: Standardizes a column (zero mean and unit variance)
 - `preprocessing`: Preprocessing of the data (log-scale data, categorical splitting, delete highly correlated columns, remove nan columns, replace nan values by column median)
 - `build_poly`: Turns numpy array into polynomial augmentation of itself
-- `build_poly`:
-- `build_poly`:
-- `build_poly`:
+- `predict_labels & predict_labels_log_reg`: returns prediction based on the weights of the model
+- `metrics`: returns the accuracy and F1 score of a prediction
+- `create_csv_submission`: makes csv submission for given prediction
 
 ### ```helpers.py```
 
