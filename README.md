@@ -7,7 +7,8 @@ EPFL: CS-433 Machine Learning - Project 1
 
 ## Requirements
 
-1. Please make sure ```Python 3.6``` and ```NumPy>=1.15``` are installed.
+* ```Python 3.6``` 
+* ```NumPy>=1.15``` 
 
 ~~~~shell
 cd script
