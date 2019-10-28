@@ -8,17 +8,20 @@ EPFL: CS-433 Machine Learning - Project 1
 ## Requirements
 
 * ```Python 3.6``` 
-* ```NumPy>=1.15``` 
-
-~~~~shell
-cd script
-python run.py
-~~~~
+* ```NumPy 1.17``` 
 
 ## Modules and Notebook
 
 ### ```proj1_helpers.py```
-Helper functions to load raw csv data into NumPy array, generate class predictions and create an output file in csv format for submission to Kaggle.
+- `load_csv_data`: Load csv data into numpy arrays.
+- `split_data`: Split data into train and test.
+- `set_median`: Used to turn nan values into the median of the corresponding column
+- `standardize`: Standardizes a column (zero mean and unit variance)
+- `preprocessing`: Preprocessing of the data (log-scale data, categorical splitting, delete highly correlated columns, remove nan columns, replace nan values by column median)
+- `build_poly`: Turns numpy array into polynomial augmentation of itself
+- `build_poly`:
+- `build_poly`:
+- `build_poly`:
 
 ### ```helpers.py```
 
