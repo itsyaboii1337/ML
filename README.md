@@ -24,24 +24,22 @@ EPFL: CS-433 Machine Learning - Project 1
 - `create_csv_submission`: makes csv submission for given prediction
 
 ### ```implementations.py```
-- `build_k_indices`: Build k indices for cross validation
 - `cross_validation`: Cross validation
-- `compute_mse`: Compute the mean square error of the predicted output compared to the ground truth results.
-- `compute_mse`: Compute the root mean square error of the predicted output compared to the ground truth results.
-- ``: Linear regression using gradient descent.
+- `least_squares_GD`: Linear regression using gradient descent.
 - `least_squares_SGD`: Linear regression using stochastic gradient descent.
 - `least_squares`: Least squares regression using normal equations.
 - `ridge_regression`: Ridge regression using normal equations.
 - `logistic_regression`: Logistic regression using SGD.
 - `reg_logistic_regression`: Regularized logistic regression using SGD.
+- `grid_search_ridge_regression`: Grid search on polynomial degrees and penalizing parameter with ridge regression
 
-### ```Cross Validation.ipynb```
+Note1: implementations.py also contains many minor functions that are either used within one of the above functions or used within a notebook but not for any final results.
 
-Notebook with the cross validation results and related functions.
+Note2: at the very bottom of implementations.py you find code which was an attempt to build a neural nerwork from scratch. This attempt was succesful in the sense that it gave slightly better results than our final submittion when enough epochs were ran. However, Since the neural network only has 1 weighted layer and 1 bias layer, the improvements were only minor while the run time was significantly longer. Attempts of adding an additional hidden layer were unsuccesful, therefore this method was not mentioned in the final report.
 
 ### ```run.py```
 
-Script to generate the same submission file as we submitted in Kaggle.
+Script to generate the same submission file as we submitted to AIcrowd
 
 
 
