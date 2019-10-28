@@ -23,25 +23,12 @@ EPFL: CS-433 Machine Learning - Project 1
 - `metrics`: returns the accuracy and F1 score of a prediction
 - `create_csv_submission`: makes csv submission for given prediction
 
-### ```helpers.py```
-
-Helper functions for data preprocessing, feature engineering and regression model training.
-
-- `preprocessing`: Preprocess train/test data with methods below.
-  - `standardize`: Standardize data set ignoring NaN.
-  - `delta_angle_norm`, `add_phi`: Add new phi features according to organizer's suggestions.
-  - `apply_log1p`: Apply log normalization to long-tailed features.
-  - `drop_useless`: Drop useless columns, including raw phi angles, columns with the same values, columns full of NaN.
-  - `fill_missing`, `fill_nan`: Mark missing values with NaN and then fill them with zero.
-- `train_predict`: Train and predict each group using polynomial ridge regression.
-  - `get_jet_index`: Get the index of three groups.
-  - `build_poly_feature`: Build polynomial features for input data.
-
 ### ```implementations.py```
-
-Six basic machine learning methods with some supported functions.
-
-- `least_squares_GD`: Linear regression using gradient descent.
+- `build_k_indices`: Build k indices for cross validation
+- `cross_validation`: Cross validation
+- `compute_mse`: Compute the mean square error of the predicted output compared to the ground truth results.
+- `compute_mse`: Compute the root mean square error of the predicted output compared to the ground truth results.
+- ``: Linear regression using gradient descent.
 - `least_squares_SGD`: Linear regression using stochastic gradient descent.
 - `least_squares`: Least squares regression using normal equations.
 - `ridge_regression`: Ridge regression using normal equations.
