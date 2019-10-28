@@ -19,44 +19,6 @@ def build_k_indices(y, k_num, seed=1):
                  for k in range(k_num)]
     return np.array(k_indices)
 
-
-def cross_validation(y, x, k_indices, num_k, lambda_, degree):
-    """return the loss of ridge regression."""
-    x_k, y_k = x[k_indices], y[k_indices]
-    Weights = []
-    Train_accs = []
-    Test_accs = []
-
-    
-    for k in range(num_k):
-        first = True
-        x_train, y_train, x_test, y_test = [],[],[],[]
-        
-        x_test = x_k[k]
-        y_test = y_k[k]
-        
-        x_train = np.concatenate(np.delete(x_k, k, axis = 0))
-        y_train = np.concatenate(np.delete(y_k, k, axis = 0))
-                
-        phi_x_train = build_poly(x_train, degree)
-        phi_x_test = build_poly(x_test, degree)
-        loss_tr, weights = ridge_regression(y_train, phi_x_train, lambda_)        
-        cat_accuracy_train, f1_score_train = metrics(weights,y_train,phi_x_train)         
-        cat_accuracy_test, f1_score_test= metrics(weights,y_test,phi_x_test)
-        Weights.append(weights)
-        Train_accs.append(cat_accuracy_train)
-        Test_accs.append(cat_accuracy_test)
-    
-    Train_accs = np.array(Train_accs)
-    Test_accs = np.array(Test_accs)
-    Weights = np.array(Weights)
-    
-    return np.mean(Train_accs), np.mean(Test_accs), Weights[0]
-
-    
-    
-
-
 # Loss functions
 
 def compute_mse(y, tx, w):

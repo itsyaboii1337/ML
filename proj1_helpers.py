@@ -203,18 +203,26 @@ def build_k_indices(y, k_fold, seed):
                  for k in range(k_fold)]
     return np.array(k_indices)
 
-#TODO: Not working
 def cross_validation(y, x, k_fold, lambda_, degree):
-    """return the loss of ridge regression."""
+    """
+    Return the loss for ridge regression for this given lambda_ and given degree
+    Arguments:
+    - y: the column of ground truth results
+    - x: the features matrix
+    - k_fold: the number of fold to do cross validation
+    - lambda_: penalizing parameter for ridge regression
+    - degree: the degree of the polynomial data augmentation
+    """
     k_indices = build_k_indices(y, k_fold, 1)
     x_k, y_k = x[k_indices], y[k_indices]
     Loss_tr = []
     Loss_te = []
     for k in range(k_fold): 
-        x_train = x_k[k]
-        y_train = y_k[k]
-        x_test = x_k[~k]
-        y_test = y_k[~k]        
+        x_train, y_train, x_test, y_test = [],[],[],[]        
+        x_test = x_k[k]
+        y_test = y_k[k]        
+        x_train = np.delete(x_k, k, axis = 0)
+        y_train = np.delete(y_k, k, axis = 0)
         phi_x_train = build_poly(x_train, degree)
         phi_x_test = build_poly(x_test, degree)
         loss_tr, weights = implementations.ridge_regression(y_train, phi_x_train, lambda_)
