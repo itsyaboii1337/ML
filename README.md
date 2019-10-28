@@ -35,7 +35,9 @@ EPFL: CS-433 Machine Learning - Project 1
 
 Note1: implementations.py also contains many minor functions that are either used within one of the above functions or used within a notebook but not for any final results.
 
-Note2: At the very bottom of implementations.py you find code which was an attempt to build a neural nerwork from scratch. This attempt was succesful in the sense that it gave slightly better results than our final submittion when enough epochs were ran. However, Since the neural network only has 1 weighted layer and 1 bias layer, the improvements were only minor while the run time was significantly longer. Attempts of adding an additional hidden layer were unsuccesful, therefore this method was not mentioned in the final report.
+Note2: To use logistic_regression and reg_logistic_regression, make sure that your ground truth vector that you try to predict must have binary values (0 or 1).
+
+Note3: At the very bottom of implementations.py you find code which was an attempt to build a neural nerwork from scratch. This attempt was succesful in the sense that it gave slightly better results than our final submittion when enough epochs were ran. However, Since the neural network only has 1 weighted layer and 1 bias layer, the improvements were only minor while the run time was significantly longer. Attempts of adding an additional hidden layer were unsuccesful, therefore this method was not mentioned in the final report.
 
 ### ```run.py```
 
